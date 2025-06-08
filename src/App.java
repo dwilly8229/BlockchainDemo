@@ -1,122 +1,57 @@
-import java.util.*;
-import java.security.MessageDigest;
+import java.util.Random;
 
-class Block{
-    public int index;
-    public long timeStamp;
-    public String data;
-    public String prevHash;
-    public String hash;
-    public int nonce;
+public class App {
 
-    public Block(int index, long timeStamp, String data, String prevHash){
-        this.index=index;
-        this.timeStamp=timeStamp;
-        this.data=data;
-        this.prevHash=prevHash;
-        this.nonce=0;
-        this.hash=calHash();
-    }
-    public String calHash(){
-        String h = index + Long.toString(timeStamp) + data + prevHash +nonce;
-        return applySha256(h);
-    }
-    public static String applySha256(String h){
-        try{
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(h.getBytes("UTF-8"));
-            StringBuilder hexString = new StringBuilder();
-            for(byte b: hash){
-                String hex = Integer.toHexString(0xff & b);
-                if(hex.length()==1) hexString.append('0');
-                hexString.append(hex);
+    public static void main(String[] args) {
+        Random random = new Random();
+
+        // PoW: miners with power
+        String[] miners = {"Miner1", "Miner2", "Miner3"};
+        int[] powers = {random.nextInt(100), random.nextInt(100), random.nextInt(100)};
+
+        // PoS: stakers with stake
+        String[] stakers = {"Staker1", "Staker2", "Staker3"};
+        int[] stakes = {random.nextInt(100), random.nextInt(100), random.nextInt(100)};
+
+        // DPoS: delegates and votes
+        String[] delegates = {"Delegate1", "Delegate2", "Delegate3"};
+        int[] votes = {0, 0, 0};
+
+        String[] voters = {"VoterA", "VoterB", "VoterC"};
+
+        // Select PoW winner (highest power)
+        int maxPowerIndex = 0;
+        for (int i = 1; i < powers.length; i++) {
+            if (powers[i] > powers[maxPowerIndex]) {
+                maxPowerIndex = i;
             }
-            return hexString.toString();
-        }catch(Exception e){
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void mineBlock(int difficulty){
-        String target = new String(new char[difficulty]).replace('\0', '0');
-        long startTime = System.currentTimeMillis();
-        
-        int attempts=0;
-        while(!hash.substring(0, difficulty).equals(target)){
-            nonce++;
-            hash=calHash();
-            attempts++;
         }
 
-        long endTime = System.currentTimeMillis();
-        long timeTaken = endTime - startTime;
-        
-        System.out.println("Block " + index + " mined with nonce " + nonce);
-        System.out.println("Hash: " + hash);
-        System.out.println("Attempts: " + attempts);
-        System.out.println("Time Taken: " + timeTaken);
-
-    }
-
-    public String toString(){
-        return "\nBlock " + index +
-               "\nTimestamp     : " + timeStamp +
-               "\nData          : " + data +
-               "\nNonce         : " + nonce +
-               "\nPrevious Hash : " + prevHash +
-               "\nHash          : " + hash + "/n";
-    }
-
-    public static boolean isChainValid(List<Block> chain) {
-    for (int i = 1; i < chain.size(); i++) {
-        Block current = chain.get(i);
-        Block previous = chain.get(i - 1);
-
-        if (!current.prevHash.equals(previous.hash)) {
-            return false;
-        }
-        if (!current.hash.equals(current.calHash())) {
-            return false;
-        }
-    }
-    return true;
-}
-
-}
-
-public class App{
-    public static void main(String[] args){
-        int difficulty = 4;
-
-        List<Block> blockChain= new ArrayList<>();
-
-        Block genesisBlock = new Block(0, System.currentTimeMillis(), "Genesis Block", "0");
-        blockChain.add(genesisBlock);
-        genesisBlock.mineBlock(difficulty);
-
-        Block block1 = new Block(1, System.currentTimeMillis(), "Second Block", genesisBlock.hash);
-        blockChain.add(block1);
-        block1.mineBlock(difficulty);
-
-        Block block2 = new Block(2, System.currentTimeMillis(), "Third Block", block1.hash);
-        blockChain.add(block2);
-        block2.mineBlock(difficulty);
-
-        System.out.println("Initial Blockchain: ");
-        for(Block block : blockChain){
-            System.out.println(block);
-        }
-        
-        System.out.println("Tampering Block 1's data....");
-        block1.data = "Hack Data";
-        block1.hash = block1.calHash();
-
-        System.out.println("\n Blockchain After Tampering:");
-        for(Block block : blockChain){
-            System.out.println(block);
+        // Select PoS winner (highest stake)
+        int maxStakeIndex = 0;
+        for (int i = 1; i < stakes.length; i++) {
+            if (stakes[i] > stakes[maxStakeIndex]) {
+                maxStakeIndex = i;
+            }
         }
 
-        System.out.println("\n Is Blockchain Valid? " + Block.isChainValid(blockChain));
+        // Each voter votes randomly for a delegate in DPoS
+        for (int i = 0; i < voters.length; i++) {
+            int voteFor = random.nextInt(delegates.length);
+            votes[voteFor]++;
+            System.out.println(voters[i] + " voted for " + delegates[voteFor]);
+        }
 
+        // Find delegate with most votes
+        int maxVotesIndex = 0;
+        for (int i = 1; i < votes.length; i++) {
+            if (votes[i] > votes[maxVotesIndex]) {
+                maxVotesIndex = i;
+            }
+        }
+
+        System.out.println("\nPoW winner is " + miners[maxPowerIndex] + " with power " + powers[maxPowerIndex]);
+        System.out.println("PoS winner is " + stakers[maxStakeIndex] + " with stake " + stakes[maxStakeIndex]);
+        System.out.println("DPoS winner is " + delegates[maxVotesIndex] + " with votes " + votes[maxVotesIndex]);
     }
 }
