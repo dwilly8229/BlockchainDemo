@@ -37,27 +37,6 @@ class Block{
         }
     }
 
-    public void mineBlock(int difficulty){
-        String target = new String(new char[difficulty]).replace('\0', '0');
-        long startTime = System.currentTimeMillis();
-        
-        int attempts=0;
-        while(!hash.substring(0, difficulty).equals(target)){
-            nonce++;
-            hash=calHash();
-            attempts++;
-        }
-
-        long endTime = System.currentTimeMillis();
-        long timeTaken = endTime - startTime;
-        
-        System.out.println("Block " + index + " mined with nonce " + nonce);
-        System.out.println("Hash: " + hash);
-        System.out.println("Attempts: " + attempts);
-        System.out.println("Time Taken: " + timeTaken);
-
-    }
-
     public String toString(){
         return "\nBlock " + index +
                "\nTimestamp     : " + timeStamp +
@@ -86,21 +65,16 @@ class Block{
 
 public class App{
     public static void main(String[] args){
-        int difficulty = 4;
-
         List<Block> blockChain= new ArrayList<>();
 
         Block genesisBlock = new Block(0, System.currentTimeMillis(), "Genesis Block", "0");
         blockChain.add(genesisBlock);
-        genesisBlock.mineBlock(difficulty);
 
         Block block1 = new Block(1, System.currentTimeMillis(), "Second Block", genesisBlock.hash);
         blockChain.add(block1);
-        block1.mineBlock(difficulty);
 
         Block block2 = new Block(2, System.currentTimeMillis(), "Third Block", block1.hash);
         blockChain.add(block2);
-        block2.mineBlock(difficulty);
 
         System.out.println("Initial Blockchain: ");
         for(Block block : blockChain){
@@ -116,7 +90,7 @@ public class App{
             System.out.println(block);
         }
 
-        System.out.println("\n Is Blockchain Valid? " + Block.isChainValid(blockChain));
+        System.out.println("\n✅ Is Blockchain Valid? " + Block.isChainValid(blockChain));
 
     }
 }
